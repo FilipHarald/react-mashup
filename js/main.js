@@ -1,16 +1,10 @@
-import React, { Component } from 'react';
-import './index.css';
-var $ = require('jquery');
-var _ = require('lodash');
-
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
+const App = React.createClass({
+  getInitialState() {
+    return {
       spotifyUri: '',
       giphyUrl: ''
-    }
-  }
+    };
+  },
   render() {
     return (
       <div className="App">
@@ -20,36 +14,36 @@ class App extends Component {
         <p className="App-intro">
           Simply type your search phrase in the box and Spogiphyify will take the top result from Spotify and Giphy.
         </p>
-        <SearchBox  handleSubmit={this.handleSubmit.bind(this)}
-                    handleChangeText={this.handleChangeText.bind(this)}/>
+        <SearchBox  handleSubmit={this.handleSubmit}
+                    handleChangeText={this.handleChangeText}/>
         <br/>
         <ResultBox  spotifyUri={this.state.spotifyUri}
                     giphyUrl={this.state.giphyUrl}/>
       </div>
     );
-  }
+  },
   handleChangeText(e) {
     this.setState({
         searchText: e.target.value
     });
-  }
+  },
   handleSubmit(e) {
     e.preventDefault();
     this.search(this.state.searchText);
-  }
+  },
   search(text) {
     var spotifyResponse = $.getJSON('https://api.spotify.com/v1/search?q=' + text + '&type=track')
     var giphyResponse = $.getJSON('http://api.giphy.com/v1/gifs/search?q=' + text + '&api_key=dc6zaTOxFJmzC');
     spotifyResponse.then((data) => {
-      this.setState({spotifyUri: 'https://embed.spotify.com/?uri=' + _.get(data, 'tracks.items.0.uri')});
+      this.setState({spotifyUri: 'https://embed.spotify.com/?uri=' + data.tracks.items[0].uri});
     });
     giphyResponse.then((data) => {
-      this.setState({giphyUrl: _.get(data, 'data.0.images.original.url')});
+      this.setState({giphyUrl: data.data[0].images.original.url});
     });
   }
-}
+});
 
-class SearchBox extends Component {
+const SearchBox = React.createClass({
   render() {
     return (
       <div className="SearchBox">
@@ -61,13 +55,11 @@ class SearchBox extends Component {
       </div>
     );
   }
-}
+});
 
-class ResultBox extends Component{
+const ResultBox = React.createClass({
   render() {
-    const spotifyUri = _.get(this.props, 'spotifyUri');
-    const giphyUrl = _.get(this.props, 'giphyUrl');
-    if (spotifyUri && giphyUrl) {
+    if (this.props.spotifyUri && this.props.giphyUrl) {
       return(
         <div className="ResultBox">
           <iframe src={this.props.spotifyUri} width="300" height="380"></iframe>
@@ -77,6 +69,9 @@ class ResultBox extends Component{
     }
     return (<div className="ResultBox"></div>);
   }
-}
+});
 
-export default App;
+ReactDOM.render(
+  <App />,
+  document.getElementById('root')
+);
